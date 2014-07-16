@@ -9,11 +9,13 @@
 import UIKit
 import SpriteKit
 
+
 extension SKNode {
     class func unarchiveFromFile(file : NSString) -> SKNode? {
         
         let path = NSBundle.mainBundle().pathForResource(file, ofType: "sks")
         
+ 
         var sceneData = NSData.dataWithContentsOfFile(path, options: .DataReadingMappedIfSafe, error: nil)
         var archiver = NSKeyedUnarchiver(forReadingWithData: sceneData)
         
@@ -24,14 +26,22 @@ extension SKNode {
     }
 }
 
+
 class GameViewController: UIViewController {
+    let log = XCGLogger.defaultInstance()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        log.debug("Executing viewDidLoad")
+        
+        log.debug("Loading the Scene file")
         if let scene = GameScene.unarchiveFromFile("GameScene") as? GameScene {
+            log.debug("Setting up the Vew")
             // Configure the view.
             let skView = self.view as SKView
+            // Set the background color and title
+            skView.backgroundColor = UIColor.blackColor()
+
             skView.showsFPS = true
             skView.showsNodeCount = true
             
@@ -39,11 +49,13 @@ class GameViewController: UIViewController {
             skView.ignoresSiblingOrder = true
             
             /* Set the scale mode to scale to fit the window */
-            scene.scaleMode = .AspectFill
+            scene.scaleMode = .Fill
             
+            //log.debug("About to show the scene")
             skView.presentScene(scene)
         }
-    }
+
+}
 
     override func shouldAutorotate() -> Bool {
         return true
@@ -62,7 +74,5 @@ class GameViewController: UIViewController {
         // Release any cached data, images, etc that aren't in use.
     }
 
-    override func prefersStatusBarHidden() -> Bool {
-        return true
-    }
+
 }
