@@ -53,9 +53,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         view.scene.scaleMode =  SKSceneScaleMode.Fill
         view.scene.backgroundColor = UIColor(red: 0, green: 0.4, blue : 0.12, alpha: 1.0)
         // set the ball physics velocity bounce
-        self.physicsWorld.gravity = CGVectorMake(10,20)
+        self.physicsWorld.gravity = CGVectorMake(-15,-20)
         // adjust the speed of the ball
-        self.physicsWorld.speed = Float(ballSpeed)
+        self.physicsWorld.speed = CGFloat(ballSpeed)
         // setup the contact delegte (colussion detection)
         self.physicsWorld.contactDelegate = self
       }
@@ -90,7 +90,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         
         let rightPaddlePosition = (self.frame.width  - 5)
         rightPaddle.position = CGPoint(x:rightPaddlePosition, y:self.frame.height)
-        rightPaddle.size = CGSize(width: 5, height: Float(paddleHeight))
+        rightPaddle.size = CGSize(width: 5, height: CGFloat(paddleHeight))
         rightPaddle.anchorPoint = CGPoint(x:0.0, y:0.0)
         rightPaddle.xScale = 1.0
         rightPaddle.yScale = 1.0
@@ -105,7 +105,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     func setupRightPaddleForMotion() {
         let rightPaddlePosition = (self.frame.width - 5)
-        let topAdjusted = CGFloat(self.frame.height) - Float(paddleHeight)
+        let topAdjusted = CGFloat(self.frame.height) - CGFloat(paddleHeight)
         // hadle Left Paddle
         let upperRightLocation = CGPoint(x:rightPaddlePosition, y:topAdjusted)
         let lowerRightLocation = CGPoint(x:rightPaddlePosition, y:0)
@@ -128,7 +128,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     
     func setupLeftPaddleSprite() {
         leftPaddle.position = CGPoint(x:0,y:0)
-        leftPaddle.size = CGSize(width: 5, height: Float(paddleHeight))
+        leftPaddle.size = CGSize(width: 5, height: CGFloat(paddleHeight))
         leftPaddle.anchorPoint = CGPoint(x:0.0,y:0.0)
         leftPaddle.xScale = 1.0
         leftPaddle.yScale = 1.0
@@ -141,7 +141,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
 
     func setupLeftPaddleForMotion()  {
-        let topAdjusted = Float(self.frame.height) - Float(paddleHeight)
+        let topAdjusted = CGFloat(self.frame.height) - CGFloat(paddleHeight)
         // hadle Left Paddle
         let upperLeftLocation = CGPoint(x:0, y:topAdjusted)
         let lowerLeftLocation = CGPoint(x:0, y:0)
@@ -169,6 +169,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         ceiling.physicsBody.dynamic = false
         ceiling.physicsBody.friction = 0.0
         ceiling.physicsBody.restitution = 0.0
+        ceiling.physicsBody.affectedByGravity = false
         // collision detection
         ceiling.physicsBody.usesPreciseCollisionDetection = true
         
@@ -186,6 +187,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         floor.physicsBody.dynamic = false
         floor.physicsBody.friction = 0.0
         floor.physicsBody.restitution = 0.0
+        floor.physicsBody.affectedByGravity = false
         // collision detection
         floor.physicsBody.usesPreciseCollisionDetection = true
         return floor
@@ -209,8 +211,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         ball.physicsBody.linearDamping = 0.0
         ball.physicsBody.resting = false
         ball.physicsBody.affectedByGravity = true
-        ball.physicsBody.applyImpulse(CGVectorMake(10.0, 0.0))
-        ball.physicsBody.angularVelocity = Float(0.5)
+        ball.physicsBody.applyImpulse(CGVectorMake(10.0, 1.0))
+        ball.physicsBody.angularVelocity = CGFloat(0.5)
         
         // this will allow the balls to rotate when bouncing off each other
         ball.physicsBody.allowsRotation = false
@@ -223,7 +225,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                                             | ColliderType.rightPaddle.toRaw()
                                             | ColliderType.leftPaddle.toRaw()
         ball.physicsBody.contactTestBitMask = ColliderType.pong.toRaw()
-                                            | ColliderType.ball.toRaw()
                                             | ColliderType.floor.toRaw()
                                             | ColliderType.ceiling.toRaw()
                                             | ColliderType.rightPaddle.toRaw()
@@ -263,50 +264,41 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             let ball = (contact.bodyA.categoryBitMask & 4) > 0 ?  contact.bodyA.node : contact.bodyB.node
             let floorNode =   self.childNodeWithName(floorLabel)
             let ceilingNode = self.childNodeWithName(ceilingLabel)
-            
+            let positionX = ball.position.x as NSNumber
+            let positionY = ball.position.y as NSNumber
+            var ballX:String = positionX.stringValue
+            var ballY:String = positionY.stringValue
+            var ballPosition:String  = "-->Bal x,y: " + ballX + "," + ballY
             // What did I find?
             if (ball.intersectsNode(leftPaddle)) {
                 log.debug("--->Ball hit leftPaddle")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-  
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.5,
+                log.debug(ballPosition)
+               self.physicsWorld.gravity = CGVectorMake(15,20)
+               ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 5,
                     -ball.physicsBody.velocity.dy * 2.0)
             }
             else if (ball.intersectsNode(rightPaddle)) {
                 log.debug("--->Ball hit rightPaddle")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.5,
-                    -ball.physicsBody.velocity.dy * 2.0)
+                log.debug(ballPosition)
+                self.physicsWorld.gravity = CGVectorMake(-15,-20)
+                ball.physicsBody.velocity = CGVectorMake( ball.physicsBody.velocity.dx * 2.5,
+                    ball.physicsBody.velocity.dy * 2.0)
             }
             else if (floorNode != nil && ball.intersectsNode(floorNode)) {
                 log.debug("--->Ball hit floor")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.0,
-                    -ball.physicsBody.velocity.dy)
+                log.debug(ballPosition)
             }
             else if (ceilingNode != nil && ball.intersectsNode(ceilingNode)) {
                 log.debug("--->Ball hit ceiling")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.0,
-                    -ball.physicsBody.velocity.dy)
-            }
-            else if (ball.position.x < 20 && ball.position.x >= 0) {
-                log.debug("--->Ball bounces off lower left corner")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.0,
-                    -ball.physicsBody.velocity.dy * 1.5)
+                log.debug(ballPosition)
             }
             else if (ball.position.y >= (self.frame.width * 1.5) && ball.position.y >= 0) {
                 log.debug("--->Ball bounces off lower right corner")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.0,
-                    -ball.physicsBody.velocity.dy * 1.5)
+                log.debug(ballPosition)
             }
             else if ((ball.position.x >= self.frame.height * 1.5) && (ball.position.x >= 0) && (ball.position.y >= self.frame.width)) {
                 log.debug("--->Ball bounces off upper right corner")
-                log.debug("-->Bal x,y: " + String(ball.position.x) + "," + String(ball.position.y))
-                ball.physicsBody.velocity = CGVectorMake( -ball.physicsBody.velocity.dx * 2.0,
-                    -ball.physicsBody.velocity.dy * 1.5)
+                log.debug(ballPosition)
             }
             
         }
@@ -326,11 +318,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             else if (node.position.x < 0) {
                 node.removeFromParent()
             }
-            else if (node.position.y > self.frame.width * 1.5) {
+            else if (node.position.x > self.frame.width) {
                 node.removeFromParent()
+                self.physicsWorld.gravity = CGVectorMake(-15,-20)
             }
-            else if (node.position.x > self.frame.height * 1.5) {
-                node.removeFromParent()
+            else if (node.position.y > self.frame.height - 20) {
+                node.position.y =   node.position.y - 30
+                self.physicsWorld.gravity = CGVectorMake(-15,-20)
             }
          }
         
